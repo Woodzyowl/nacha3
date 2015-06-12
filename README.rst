@@ -2,11 +2,11 @@
 nacha
 =====
 
-.. image:: https://travis-ci.org/balanced/nacha.png
-   :target: https://travis-ci.org/balanced/nacha
+.. image:: https://travis-ci.org/DisruptiveLabs/nacha.png
+   :target: https://travis-ci.org/DisruptiveLabs/nacha
 
-.. image:: https://coveralls.io/repos/balanced/nacha/badge.png?branch=master
-  :target: https://coveralls.io/r/balanced/nacha?branch=master
+.. image:: https://coveralls.io/repos/DisruptiveLabs/nacha/badge.png?branch=master
+  :target: https://coveralls.io/r/DisruptiveLabs/nacha?branch=master
 
 `NACHA <http://www.regaltek.com/docs/NACHA Format.pdf>`_ is a fixed sized
 record format used to represent financial transactions composed like this:
@@ -68,7 +68,7 @@ use
 
 .. code:: bash
 
-   $ pip install nacha
+   $ pip install py-nacha
 
 ===
 dev
@@ -76,7 +76,7 @@ dev
 
 .. code:: bash
 
-   $ git clone git@github.com:balanced/nacha.git
+   $ git clone git@github.com:DisruptiveLabs/nacha.git
    $ cd nacha
    $ mkvirtualenv nacha
    (nacha)$ pip install -e .[tests]
@@ -93,4 +93,4 @@ Now that all tests are passing:
 - Tag it ``git tag -a v{version} -v  v{version}``
 - Push it ``git push origin --tags``
 
-and `travis <https://travis-ci.org/balanced/nacha>`_ will take it from there.
+and `travis <https://travis-ci.org/DisruptiveLabs/nacha>`_ will take it from there.

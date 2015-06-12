@@ -54,7 +54,7 @@ Or structured like this:
         reader.file_control()
 
 """
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 __all__ = [
     'ctx',
@@ -75,8 +75,7 @@ import collections
 import contextlib
 import datetime
 import itertools
-
-from .packages import bryl
+import bryl
 
 
 ctx = bryl.ctx(alpha_upper=True)
@@ -262,7 +261,7 @@ class EntryDetail(Record):
 
     receiving_dfi_trn_check_digit = Numeric(1)
 
-    receiving_dfi_account_number = Alphanumeric(17, align=Alphanumeric.RIGHT)
+    receiving_dfi_account_number = Alphanumeric(17, align=Alphanumeric.LEFT)
 
     amount = Numeric(10)
 

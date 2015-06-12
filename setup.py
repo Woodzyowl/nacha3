@@ -24,21 +24,23 @@ extras_require = {
 }
 
 setuptools.setup(
-    name='nacha',
+    name='py-nacha',
     version=(
         re
         .compile(r".*__version__ = '(.*?)'", re.S)
         .match(open('nacha/__init__.py').read())
         .group(1)
     ),
-    url='https://github.com/balanced/nacha',
-    author='Balanced',
-    author_email='dev+nacha@balancedpayments.com',
-    description='NACHA',
-    long_description='',
+    url='https://github.com/DisruptiveLabs/nacha',
+    author='DisruptiveLabs',
+    author_email='team+nacha@comanage.com',
+    description='NACHA File Generation',
+    long_description=open('README.rst', 'r').read(),
     platforms='any',
     include_package_data=True,
-    install_requires=[],
+    install_requires=[
+        'bryl'
+    ],
     extras_require=extras_require,
     tests_require=extras_require['tests'],
     packages=setuptools.find_packages('.', exclude=('tests', 'tests.*')),

@@ -1,3 +1,0 @@
-[submodule "vendor/bryl"]
-	path = vendor/bryl
-	url = git@github.com:bninja/bryl.git 
