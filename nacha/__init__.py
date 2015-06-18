@@ -54,7 +54,16 @@ Or structured like this:
         reader.file_control()
 
 """
-__version__ = '0.1.2'
+
+import collections
+import contextlib
+import datetime
+import itertools
+import math
+
+import bryl
+
+__version__ = '0.1.3'
 
 __all__ = [
     'ctx',
@@ -71,13 +80,6 @@ __all__ = [
     'Reader',
 ]
 
-import collections
-import contextlib
-import datetime
-import itertools
-import bryl
-
-
 ctx = bryl.ctx(alpha_upper=True)
 
 Numeric = bryl.Numeric
@@ -90,7 +92,6 @@ Alphanumeric = bryl.Alphanumeric
 
 
 class Enum(dict):
-
     def __init__(self, **kwargs):
         super(Enum, self).__init__(**kwargs)
         for k, v in kwargs.iteritems():
@@ -98,7 +99,6 @@ class Enum(dict):
 
 
 class Record(bryl.Record):
-
     record_type = Alphanumeric(1)
 
     def copy(self):
@@ -106,7 +106,6 @@ class Record(bryl.Record):
 
 
 class FileHeader(Record):
-
     record_type = Record.record_type.constant('1')
 
     priority_code = Numeric(2).constant(1)
@@ -174,7 +173,6 @@ StandardEntryClasses = Enum(
 
 
 class CompanyBatchHeader(Record):
-
     record_type = Record.record_type.constant('5')
 
     service_class_code = Numeric(3, enum=ServiceClassCodes)
@@ -227,7 +225,6 @@ TransactionCodes = Enum(
 
 
 class EntryDetail(Record):
-
     record_type = Record.record_type.constant('6')
 
     @classmethod
@@ -235,8 +232,7 @@ class EntryDetail(Record):
                              amount,
                              receiving_type,
                              is_return=False,
-                             is_prenote=False,
-        ):
+                             is_prenote=False):
         if is_return:
             code = TransactionCodes.CHECKING_RETURNED_CREDIT
         elif is_prenote or amount == 0:
@@ -314,7 +310,6 @@ class EntryDetail(Record):
 
 
 class EntryDetailAddendum(Record):
-
     record_type = Record.record_type.constant('7')
 
     addenda_type = Numeric(2).constant(5)
@@ -327,7 +322,6 @@ class EntryDetailAddendum(Record):
 
 
 class Entry(collections.namedtuple('Entry', ['detail', 'addenda'])):
-
     @property
     def is_rejection(self):
         return self.detail.is_rejection
@@ -355,7 +349,6 @@ class Entry(collections.namedtuple('Entry', ['detail', 'addenda'])):
 
 
 class CompanyBatchControl(Record):
-
     record_type = Record.record_type.constant('8')
 
     service_class_code = Numeric(3)
@@ -380,7 +373,6 @@ class CompanyBatchControl(Record):
 
 
 class FileControl(Record):
-
     record_type = Record.record_type.constant('9')
 
     batch_count = Numeric(6)
@@ -399,7 +391,6 @@ class FileControl(Record):
 
 
 class Writer(object):
-
     RECORD_TERMINAL = '\n'
 
     HASH_MOD = 10 ** 10
@@ -415,10 +406,12 @@ class Writer(object):
         self._batch_numbers = itertools.count(1)
         self._default_at = None
         self._entry_count = 0
+        self._total_entry_count = 0
 
     def write(self, record):
         self.fo.write(record.dump())
         self.fo.write(self.RECORD_TERMINAL)
+        self._total_entry_count += 1
 
     def begin_file(self,
                    immediate_destination,
@@ -427,8 +420,7 @@ class Writer(object):
                    immediate_origin_name,
                    created_at=None,
                    file_id_modifier='A',
-                   reference_code=None,
-        ):
+                   reference_code=None):
         if self._ctxs:
             raise Exception('Cannot be in context')
 
@@ -471,8 +463,7 @@ class Writer(object):
                             originating_dfi_id,
                             effective_entry_date=None,
                             company_descriptive_date=None,
-                            company_discretionary_data=None,
-        ):
+                            company_discretionary_data=None):
         batch_number = self._batch_numbers.next()
         self._company_batch_header = CompanyBatchHeader(
             service_class_code=service_class_code,
@@ -514,18 +505,16 @@ class Writer(object):
               individual_name,
               trace_number=None,
               discretionary_data=None,
-              addenda=None,
-        ):
+              addenda=None):
         with self.begin_entry(
-                 transaction_code,
-                 receiving_dfi_routing_number,
-                 receiving_dfi_account_number,
-                 amount,
-                 individual_id,
-                 individual_name,
-                 trace_number,
-                 discretionary_data,
-             ):
+                transaction_code,
+                receiving_dfi_routing_number,
+                receiving_dfi_account_number,
+                amount,
+                individual_id,
+                individual_name,
+                trace_number,
+                discretionary_data):
             if addenda:
                 for addednum in addenda:
                     if isinstance(addednum, basestring):
@@ -544,15 +533,13 @@ class Writer(object):
                     individual_id,
                     individual_name,
                     trace_number=None,
-                    discretionary_data=None,
-        ):
+                    discretionary_data=None):
         if not self.in_company_batch_context():
             raise Exception('Not in company batch context')
         self._entry_addenda = []
         if len(str(receiving_dfi_routing_number)) != 9:
             raise ValueError(
-                'receiving_dfi_routing_number {0} length != 9'
-                .format(receiving_dfi_routing_number)
+                'receiving_dfi_routing_number {0} length != 9'.format(receiving_dfi_routing_number)
             )
         receiving_dfi_routing_number = str(receiving_dfi_routing_number)
         self._entry_detail = self.entry_detail_cls(
@@ -565,7 +552,7 @@ class Writer(object):
             individual_name=individual_name,
             trace_number=trace_number or self._trace_number(),
             discretionary_data=discretionary_data,
-            addenda_record_indicator=0,
+            addenda_record_indicator=0
         )
         return self._push(self.end_entry)
 
@@ -601,8 +588,8 @@ class Writer(object):
                     self._company_batch_control.total_batch_credit_entry_amount += self._entry_detail.amount
                 self._company_batch_control.entry_addenda_count += 1 + len(self._entry_addenda)
                 self._company_batch_control.entry_hash = (
-                    self._company_batch_control.entry_hash + self._entry_detail.receiving_dfi_trn
-                ) % self.HASH_MOD
+                                                             self._company_batch_control.entry_hash + self._entry_detail.receiving_dfi_trn
+                                                         ) % self.HASH_MOD
 
                 # file control
                 if self._entry_detail.is_debit:
@@ -611,8 +598,8 @@ class Writer(object):
                     self.file_control.total_file_credit_entry_amount += self._entry_detail.amount
                 self.file_control.entry_addenda_record_count += 1 + len(self._entry_addenda)
                 self.file_control.entry_hash_total = (
-                    self.file_control.entry_hash_total + self._entry_detail.receiving_dfi_trn
-                ) % self.HASH_MOD
+                                                         self.file_control.entry_hash_total + self._entry_detail.receiving_dfi_trn
+                                                     ) % self.HASH_MOD
 
                 self._entry_count += 1
         finally:
@@ -637,8 +624,8 @@ class Writer(object):
         try:
             if ex is None:
                 # file control
-                self.file_control.block_count += 1
-
+                self.file_control.block_count = int(math.ceil(float(self._total_entry_count) / 10))
+                self._total_entry_count = 0
                 self.write(self.file_control)
         finally:
             self._pop(self.end_file)
@@ -676,7 +663,6 @@ class Writer(object):
 
 
 class Malformed(ValueError):
-
     def __init__(self, file_name, line_num, reason):
         self.file_name = file_name
         self.line_num = line_num
@@ -687,7 +673,6 @@ class Malformed(ValueError):
 
 
 class Reader(bryl.LineReader):
-
     error_types = (Malformed, Record.field_type.error_type)
 
     record_types = dict(
@@ -705,9 +690,9 @@ class Reader(bryl.LineReader):
     def filter(self, *record_types):
         for record in self:
             if any(
-                   isinstance(record, record_type)
-                   for record_type in record_types
-                ):
+                    isinstance(record, record_type)
+                    for record_type in record_types
+            ):
                 yield record
 
     # bryl.LineReader
