@@ -68,7 +68,7 @@ use
 
 .. code:: bash
 
-   $ pip install py-nacha
+   $ pip install nacha3
 
 ===
 dev
@@ -76,21 +76,8 @@ dev
 
 .. code:: bash
 
-   $ git clone git@github.com:DisruptiveLabs/nacha.git
+   $ git clone https://github.com/rockxraj68/nacha3.git
    $ cd nacha
    $ mkvirtualenv nacha
    (nacha)$ pip install -e .[tests]
    (nacha)$ py.test tests.py --cov=nacha --cov-report term-missing 
-
-=======
-release
-=======
-
-Now that all tests are passing:
-
-- Update ``nacha.__version__`` to new ``{version}``.
-- Commit that ``git commit -am "Release v{version}"``
-- Tag it ``git tag -a v{version} -v  v{version}``
-- Push it ``git push origin --tags``
-
-and `travis <https://travis-ci.org/DisruptiveLabs/nacha>`_ will take it from there.
