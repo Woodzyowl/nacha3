@@ -327,8 +327,6 @@ class Field(object):
             value = (self.pad * (self.length - len(value))) + value
         else:
             value = self.pad * (self.length - len(value)) + value
-        if isinstance(value, unicode):
-            value = value.encode('ascii')
         return value
 
     def dump(self, value):
