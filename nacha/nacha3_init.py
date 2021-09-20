@@ -540,10 +540,12 @@ class Writer(object):
                  discretionary_data,
              ):
             if addenda:
+                entry_addenda_counter = itertools.count(1)
                 for addednum in addenda:
                     if isinstance(addednum, str):
                         addednum = {
-                            'payment_related_information': addednum
+                            'payment_related_information': addednum,
+                            'entry_addenda_counter': entry_addenda_counter
                         }
                     self.entry_addendum(**addednum)
             detail, addenda = self._entry_detail, self._entry_addenda
@@ -585,7 +587,7 @@ class Writer(object):
     def in_entry_context(self):
         return self._ctxs and self._ctxs[-1] == self.end_entry
 
-    def entry_addendum(self, payment_related_information):
+    def entry_addendum(self, payment_related_information, entry_addenda_counter):
         if not self.in_entry_context:
             raise Exception('Not in entry context')
 
@@ -593,7 +595,7 @@ class Writer(object):
         record = self.entry_addendum_cls(
             payment_related_information=payment_related_information,
             addenda_sequence_number=len(self._entry_addenda),
-            entry_detail_sequence_number=self._entry_detail_sequence_number,
+            entry_detail_sequence_number=next(entry_addenda_counter),
         )
         self._entry_addenda.append(record)
 
