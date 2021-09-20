@@ -327,8 +327,7 @@ class EntryDetailAddendum(Record):
 
     record_type = Record.record_type.constant('7')
 
-    #addenda_type = Numeric(2).constant(5)
-    addenda_type = Numeric(2)
+    addenda_type = Alphanumeric(2).constant('05')
 
     ach_code = Alphanumeric(3)
 

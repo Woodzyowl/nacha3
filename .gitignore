@@ -27,3 +27,6 @@ docs/_build
 .pydevproject
 .project
 .settings
+
+# Mac OS files
+.DS_Store
