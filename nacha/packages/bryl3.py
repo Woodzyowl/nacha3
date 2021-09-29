@@ -274,7 +274,8 @@ class Field(object):
     def fill(self, record, value):
         new_value = self.map(record, value)
         if self._constant is not None:
-            return
+            if self.value != new_value:
+                raise TypeError('Constant fields can not be set to a different value')
         record[self.name] = new_value
 
     def map(self, record, value):
@@ -392,7 +393,7 @@ class Numeric(Field):
         super(Numeric, self).__init__(*args, **kwargs)
 
     def load(self, raw):
-        if not raw or raw.strip() is '':
+        if not raw or raw.strip() == '':
             raw = '0'
         return int(raw)
 
@@ -630,7 +631,6 @@ class RecordMeta(type):
 
 
 class Record(dict, metaclass=RecordMeta):
-     #__metaclass__ = RecordMeta
 
     field_type = Field
 
